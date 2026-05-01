@@ -313,27 +313,38 @@ const PHASE_COLORS = {
 };
 
 // ── Helpers ──
+
+// Date-only strings ("2026-05-08") are parsed as UTC midnight by
+// new Date(), which rolls back a day in US time zones. This helper
+// treats date-only strings as local midnight instead.
+function parseDate(s) {
+  if (!s) return null;
+  if (s.includes("T")) return new Date(s);
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
 function fmtDate(s) {
   if (!s) return "TBD";
-  const d = new Date(s);
+  const d = parseDate(s);
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 function fmtTime(s) {
   if (!s || !s.includes("T")) return "";
-  return new Date(s).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return parseDate(s).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
 function fmtFull(s) {
   if (!s) return "TBD";
-  const d = new Date(s);
+  const d = parseDate(s);
   const day = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
   return s.includes("T") ? `${day} at ${fmtTime(s)}` : day;
 }
 
 function getStatus(s) {
   if (!s) return "upcoming";
-  const diff = new Date(s) - new Date();
+  const diff = parseDate(s) - new Date();
   if (diff <= 0) return "past";
   const hrs = diff / 36e5;
   if (hrs <= 48) return "imminent";
@@ -343,15 +354,15 @@ function getStatus(s) {
 
 function getPhase(rfp) {
   const now = new Date();
-  if (now < new Date(rfp.siteWalk)) return "Pre-Site Walk";
-  if (now < new Date(rfp.questionsDeadline)) return "Questions Open";
-  if (now < new Date(rfp.proposalDeadline)) return "Bids Open";
-  if (now < new Date(rfp.anticipatedAward)) return "Under Review";
+  if (now < parseDate(rfp.siteWalk)) return "Pre-Site Walk";
+  if (now < parseDate(rfp.questionsDeadline)) return "Questions Open";
+  if (now < parseDate(rfp.proposalDeadline)) return "Bids Open";
+  if (now < parseDate(rfp.anticipatedAward)) return "Under Review";
   return "Awarded / Complete";
 }
 
 function countdownText(s) {
-  const diff = new Date(s) - new Date();
+  const diff = parseDate(s) - new Date();
   if (diff <= 0) return null;
   const d = Math.floor(diff / 864e5);
   const h = Math.floor((diff % 864e5) / 36e5);
@@ -364,10 +375,10 @@ function countdownText(s) {
 function render() {
   const now = new Date();
   const sorted = [...RFP_DATA].sort((a, b) => {
-    const ap = new Date(a.proposalDeadline) < now;
-    const bp = new Date(b.proposalDeadline) < now;
+    const ap = parseDate(a.proposalDeadline) < now;
+    const bp = parseDate(b.proposalDeadline) < now;
     if (ap !== bp) return ap ? 1 : -1;
-    return new Date(a.proposalDeadline) - new Date(b.proposalDeadline);
+    return parseDate(a.proposalDeadline) - parseDate(b.proposalDeadline);
   });
 
   const clockStr = now.toLocaleDateString("en-US", {

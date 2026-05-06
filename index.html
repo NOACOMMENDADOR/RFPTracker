@@ -5,15 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CLERC RFP Tracker</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anybody:wght@400;600;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --page-bg: #f8f7f4;
-      --card-bg: #ffffff;
-      --card-border: #e5e2db;
-      --text-primary: #1a1a1a;
-      --text-secondary: #4a4a4a;
-      --text-tertiary: #8a8a8a;
+      --page-bg: #111210;
+      --surface: #1a1b19;
+      --surface-raised: #222320;
+      --border: #2e2f2c;
+      --border-light: #3a3b38;
+      --text-primary: #e8e6e1;
+      --text-secondary: #a09d95;
+      --text-tertiary: #6b6862;
+      --accent-green: #7dcea0;
+      --accent-amber: #e2b760;
+      --accent-red: #e07668;
+      --accent-blue: #6ba3d6;
+      --accent-purple: #b08fd6;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,226 +28,311 @@
     body {
       min-height: 100vh;
       background: var(--page-bg);
-      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      padding: 24px 16px;
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       color: var(--text-primary);
+      overflow-x: auto;
     }
 
-    .wrap { max-width: 820px; margin: 0 auto; }
-
-    .header {
+    /* ── Top bar ── */
+    .topbar {
+      padding: 20px 28px 16px;
       display: flex;
       align-items: baseline;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 4px;
+      border-bottom: 1px solid var(--border);
     }
 
-    h1 {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
+    .topbar h1 {
+      font-family: 'Anybody', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
     }
 
-    .clock {
-      font-size: 12px;
-      color: var(--text-tertiary);
+    .topbar h1 span {
+      color: var(--accent-green);
+    }
+
+    .topbar-meta {
       font-family: 'JetBrains Mono', monospace;
-    }
-
-    .subtitle {
-      font-size: 13px;
-      color: var(--text-tertiary);
-      margin-bottom: 16px;
-    }
-
-    .legend {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
       font-size: 11px;
       color: var(--text-tertiary);
-      margin-bottom: 16px;
-    }
-
-    .legend-item {
       display: flex;
+      gap: 16px;
       align-items: center;
-      gap: 4px;
     }
 
-    .legend-dot {
-      width: 8px;
-      height: 8px;
+    .live-dot {
+      width: 6px; height: 6px;
       border-radius: 50%;
+      background: var(--accent-green);
       display: inline-block;
+      animation: blink 2s ease-in-out infinite;
     }
 
-    .cards { display: flex; flex-direction: column; gap: 12px; }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      overflow: hidden;
-      opacity: 0;
-      transform: translateY(12px);
-      animation: fadeSlideIn 0.4s ease-out forwards;
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
     }
 
-    .card-header {
-      padding: 12px 16px;
+    /* ── Pipeline ── */
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      min-height: calc(100vh - 70px);
+      min-width: 900px;
+    }
+
+    .column {
+      border-right: 1px solid var(--border);
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
+      flex-direction: column;
     }
 
-    .card-header-left {
-      display: flex;
+    .column:last-child { border-right: none; }
+
+    .col-header {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--page-bg);
+      z-index: 10;
+    }
+
+    .col-phase {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 2px;
+    }
+
+    .col-sub {
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
+
+    .col-count {
+      display: inline-flex;
       align-items: center;
+      justify-content: center;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: 700;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .col-body {
+      padding: 10px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
       gap: 10px;
     }
 
-    .rfp-num {
-      font-family: 'JetBrains Mono', 'SF Mono', monospace;
-      font-size: 13px;
-      font-weight: 700;
-      background: rgba(0,0,0,0.3);
-      padding: 2px 8px;
-      border-radius: 4px;
+    .col-empty {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-tertiary);
+      font-size: 11px;
+      font-style: italic;
+      opacity: 0.5;
     }
 
-    .rfp-name {
-      font-size: 14px;
-      font-weight: 600;
-      color: #fff;
-      line-height: 1.3;
+    /* ── Phase colors ── */
+    .phase-site-walk .col-phase    { color: var(--accent-blue); }
+    .phase-site-walk .col-count    { background: rgba(107,163,214,0.15); color: var(--accent-blue); }
+    .phase-questions .col-phase    { color: var(--accent-amber); }
+    .phase-questions .col-count    { background: rgba(226,183,96,0.15); color: var(--accent-amber); }
+    .phase-bids .col-phase         { color: var(--accent-green); }
+    .phase-bids .col-count         { background: rgba(125,206,160,0.15); color: var(--accent-green); }
+    .phase-review .col-phase       { color: var(--accent-purple); }
+    .phase-review .col-count       { background: rgba(176,143,214,0.15); color: var(--accent-purple); }
+    .phase-complete .col-phase     { color: var(--text-tertiary); }
+    .phase-complete .col-count     { background: rgba(107,104,98,0.15); color: var(--text-tertiary); }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      opacity: 0;
+      animation: cardIn 0.35s ease-out forwards;
+      transition: border-color 0.2s;
     }
 
-    .phase-tag {
-      display: inline-block;
-      padding: 2px 10px;
-      border-radius: 20px;
+    .card:hover {
+      border-color: var(--border-light);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .card-num {
+      font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.03em;
+      padding: 1px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .card-grant {
+      font-size: 9px;
+      font-weight: 600;
       text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-tertiary);
       white-space: nowrap;
     }
 
-    .card-body { padding: 12px 16px 14px; }
-
-    .countdowns {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
+    .card-name {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.35;
+      margin-bottom: 10px;
+      color: var(--text-primary);
     }
 
-    .countdown-badge {
+    /* ── Urgent badge ── */
+    .urgent-badge {
       display: inline-flex;
       align-items: center;
       gap: 4px;
       padding: 3px 8px;
       border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
       font-weight: 700;
-      border-width: 1px;
-      border-style: solid;
+      margin-bottom: 10px;
     }
 
-    .countdown-badge .cb-label {
+    .urgent-badge .ub-label {
       font-size: 9px;
+      font-weight: 500;
       opacity: 0.7;
+      font-family: 'DM Sans', sans-serif;
     }
 
-    .cb-high { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
-    .cb-med  { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
-    .cb-low  { background: #f0fdf4; border-color: #86efac; color: #166534; }
+    .ub-crit { background: rgba(224,118,104,0.15); color: var(--accent-red); border: 1px solid rgba(224,118,104,0.3); }
+    .ub-warn { background: rgba(226,183,96,0.12); color: var(--accent-amber); border: 1px solid rgba(226,183,96,0.25); }
+    .ub-ok   { background: rgba(125,206,160,0.1); color: var(--accent-green); border: 1px solid rgba(125,206,160,0.2); }
 
-    .milestones {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2px 20px;
-    }
+    /* ── Milestone rows ── */
+    .milestones { display: flex; flex-direction: column; gap: 1px; }
 
-    .milestone {
+    .ms-row {
       display: flex;
-      align-items: flex-start;
-      gap: 4px;
-      margin-bottom: 4px;
+      align-items: baseline;
+      gap: 6px;
+      padding: 3px 0;
+      font-size: 11px;
+      line-height: 1.4;
     }
 
-    .milestone.past {
-      opacity: 0.45;
+    .ms-row.past {
+      opacity: 0.35;
       text-decoration: line-through;
     }
 
-    .status-dot {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
+    .ms-dot {
+      width: 6px; height: 6px;
       border-radius: 50%;
-      margin-right: 2px;
-      margin-top: 3px;
       flex-shrink: 0;
+      margin-top: 4px;
     }
 
-    .dot-past     { background: #666; }
-    .dot-imminent { background: #ef4444; animation: pulse 1.5s ease-in-out infinite; box-shadow: 0 0 6px #ef4444; }
-    .dot-soon     { background: #f59e0b; }
-    .dot-upcoming { background: #6b7280; }
+    .ms-dot-past     { background: #555; }
+    .ms-dot-imminent { background: var(--accent-red); box-shadow: 0 0 6px var(--accent-red); animation: pulse 1.5s ease-in-out infinite; }
+    .ms-dot-soon     { background: var(--accent-amber); }
+    .ms-dot-upcoming { background: var(--text-tertiary); }
 
-    .m-label {
-      font-weight: 600;
-      font-size: 12px;
-      color: var(--text-primary);
-    }
-
-    .m-date {
-      font-size: 12px;
+    .ms-label {
       color: var(--text-secondary);
+      font-weight: 500;
+      white-space: nowrap;
     }
 
-    .m-location {
-      font-size: 11px;
+    .ms-val {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .ms-loc {
+      font-size: 10px;
       color: var(--text-tertiary);
-      margin-top: 1px;
+      margin-left: 12px;
+      margin-top: -2px;
+      margin-bottom: 2px;
     }
 
-    .grant-label {
-      font-size: 11px;
-      color: var(--text-tertiary);
-      align-self: end;
-      padding-bottom: 4px;
-    }
+    /* ── Card accent stripe ── */
+    .card[data-accent="green"]  { border-left: 3px solid var(--accent-green); }
+    .card[data-accent="amber"]  { border-left: 3px solid var(--accent-amber); }
+    .card[data-accent="blue"]   { border-left: 3px solid var(--accent-blue); }
+    .card[data-accent="purple"] { border-left: 3px solid var(--accent-purple); }
+    .card[data-accent="gray"]   { border-left: 3px solid var(--text-tertiary); }
 
-    @keyframes fadeSlideIn {
-      from { opacity: 0; transform: translateY(12px); }
+    .card-num-green  { background: rgba(125,206,160,0.15); color: var(--accent-green); }
+    .card-num-amber  { background: rgba(226,183,96,0.15); color: var(--accent-amber); }
+    .card-num-blue   { background: rgba(107,163,214,0.15); color: var(--accent-blue); }
+    .card-num-purple { background: rgba(176,143,214,0.15); color: var(--accent-purple); }
+    .card-num-gray   { background: rgba(107,104,98,0.2); color: var(--text-tertiary); }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(8px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50%      { opacity: 0.5; transform: scale(1.4); }
+      50%      { opacity: 0.5; transform: scale(1.6); }
     }
 
-    @media (max-width: 500px) {
-      .milestones { grid-template-columns: 1fr; }
-      .card-header { flex-direction: column; align-items: flex-start; }
+    /* ── Mobile: stack columns vertically ── */
+    @media (max-width: 900px) {
+      .pipeline {
+        display: flex;
+        flex-direction: column;
+        min-width: unset;
+      }
+      .column {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .col-body { min-height: unset; }
     }
   </style>
 </head>
 <body>
-<div class="wrap" id="app"></div>
+
+<div class="topbar">
+  <h1><span>CLERC</span> RFP Tracker</h1>
+  <div class="topbar-meta">
+    <span id="clock"></span>
+    <span><span class="live-dot"></span> Live</span>
+  </div>
+</div>
+<div class="pipeline" id="pipeline"></div>
 
 <script>
 // ╔══════════════════════════════════════════════════════════════════╗
-// ║  CLERC RFP TRACKER — EDIT THIS SECTION TO ADD/UPDATE RFPs      ║
-// ║  Copy a block, paste it, change the values. That's it.         ║
+// ║  CLERC RFP TRACKER DATA — EDIT / ADD RFPs HERE                 ║
 // ╚══════════════════════════════════════════════════════════════════╝
 const RFP_DATA = [
   {
@@ -268,6 +360,18 @@ const RFP_DATA = [
     anticipatedCompletion: "2026-06-26",
   },
   {
+    number: "RFP-0006",
+    name: "Adamson Ranch Fuel Break Phase 1",
+    grant: "CWDG Round 1",
+    released: "2026-05-07",
+    siteWalk: "2026-05-14T11:30",
+    siteWalkLocation: "16420 Davis Ave, Clearlake",
+    questionsDeadline: "2026-05-15T11:30",
+    proposalDeadline: "2026-05-22T17:00",
+    anticipatedAward: "2026-05-29",
+    anticipatedCompletion: "2026-07-17",
+  },
+  {
     number: "RFP-0013",
     name: "Sunrise Shores (Panorama Sunrise FB)",
     grant: "CWDG Round 2",
@@ -280,43 +384,18 @@ const RFP_DATA = [
     anticipatedCompletion: "2026-07-10",
   },
   // ── ADD NEW RFPs HERE ──────────────────────────────────
-  // {
-  //   number: "RFP-XXXX",
-  //   name: "Project Name",
-  //   grant: "Grant Name",
-  //   released: "YYYY-MM-DD",
-  //   siteWalk: "YYYY-MM-DDThh:mm",
-  //   siteWalkLocation: "Location description",
-  //   questionsDeadline: "YYYY-MM-DDThh:mm",
-  //   proposalDeadline: "YYYY-MM-DDThh:mm",
-  //   anticipatedAward: "YYYY-MM-DD",
-  //   anticipatedCompletion: "YYYY-MM-DD",
-  // },
 ];
 
-// ── Row color schemes ──
-const COLORS = [
-  { bg: "#1b4332", accent: "#52b788", light: "#d8f3dc" },
-  { bg: "#3a2e1c", accent: "#d4a24e", light: "#faecd4" },
-  { bg: "#1a2744", accent: "#5e8bc9", light: "#d4e4f7" },
-  { bg: "#3b1c3a", accent: "#c475bf", light: "#f3d8f1" },
-  { bg: "#2d1b14", accent: "#d47a54", light: "#f5ddd0" },
-  { bg: "#1c2d2d", accent: "#5bb8b8", light: "#d0f0f0" },
+// ── Phases (columns, left to right) ──
+const PHASES = [
+  { key: "site-walk",  label: "Pre-Site Walk",      sub: "Upcoming walkthrough", accent: "blue" },
+  { key: "questions",  label: "Questions Open",      sub: "Submit questions",     accent: "amber" },
+  { key: "bids",       label: "Bids Open",           sub: "Proposals accepted",   accent: "green" },
+  { key: "review",     label: "Under Review",        sub: "Evaluation period",    accent: "purple" },
+  { key: "complete",   label: "Awarded / Complete",   sub: "Work underway",        accent: "gray" },
 ];
-
-const PHASE_COLORS = {
-  "Pre-Site Walk":      { bg: "#dbeafe", text: "#1e40af" },
-  "Questions Open":     { bg: "#fef3c7", text: "#92400e" },
-  "Bids Open":          { bg: "#d1fae5", text: "#065f46" },
-  "Under Review":       { bg: "#ede9fe", text: "#5b21b6" },
-  "Awarded / Complete": { bg: "#e5e7eb", text: "#374151" },
-};
 
 // ── Helpers ──
-
-// Date-only strings ("2026-05-08") are parsed as UTC midnight by
-// new Date(), which rolls back a day in US time zones. This helper
-// treats date-only strings as local midnight instead.
 function parseDate(s) {
   if (!s) return null;
   if (s.includes("T")) return new Date(s);
@@ -324,41 +403,33 @@ function parseDate(s) {
   return new Date(y, m - 1, d);
 }
 
-function fmtDate(s) {
-  if (!s) return "TBD";
-  const d = parseDate(s);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function fmtTime(s) {
-  if (!s || !s.includes("T")) return "";
-  return parseDate(s).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-}
-
-function fmtFull(s) {
+function fmtShort(s) {
   if (!s) return "TBD";
   const d = parseDate(s);
   const day = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-  return s.includes("T") ? `${day} at ${fmtTime(s)}` : day;
+  if (s.includes("T")) {
+    const t = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    return `${day}, ${t}`;
+  }
+  return day;
 }
 
 function getStatus(s) {
   if (!s) return "upcoming";
   const diff = parseDate(s) - new Date();
   if (diff <= 0) return "past";
-  const hrs = diff / 36e5;
-  if (hrs <= 48) return "imminent";
-  if (hrs <= 120) return "soon";
+  if (diff / 36e5 <= 48) return "imminent";
+  if (diff / 36e5 <= 120) return "soon";
   return "upcoming";
 }
 
-function getPhase(rfp) {
+function getPhaseKey(rfp) {
   const now = new Date();
-  if (now < parseDate(rfp.siteWalk)) return "Pre-Site Walk";
-  if (now < parseDate(rfp.questionsDeadline)) return "Questions Open";
-  if (now < parseDate(rfp.proposalDeadline)) return "Bids Open";
-  if (now < parseDate(rfp.anticipatedAward)) return "Under Review";
-  return "Awarded / Complete";
+  if (now < parseDate(rfp.siteWalk)) return "site-walk";
+  if (now < parseDate(rfp.questionsDeadline)) return "questions";
+  if (now < parseDate(rfp.proposalDeadline)) return "bids";
+  if (now < parseDate(rfp.anticipatedAward)) return "review";
+  return "complete";
 }
 
 function countdownText(s) {
@@ -366,100 +437,111 @@ function countdownText(s) {
   if (diff <= 0) return null;
   const d = Math.floor(diff / 864e5);
   const h = Math.floor((diff % 864e5) / 36e5);
-  const urgency = (d === 0) ? "high" : (d <= 2) ? "high" : (d <= 5) ? "med" : "low";
+  const urgency = d <= 2 ? "crit" : d <= 5 ? "warn" : "ok";
   const text = d > 0 ? `${d}d ${h}h` : `${h}h`;
   return { text, urgency };
+}
+
+function nextDeadline(rfp) {
+  const now = new Date();
+  const steps = [
+    { label: "Site Walk", date: rfp.siteWalk },
+    { label: "Questions", date: rfp.questionsDeadline },
+    { label: "Bids Due", date: rfp.proposalDeadline },
+    { label: "Award", date: rfp.anticipatedAward },
+  ];
+  for (const s of steps) {
+    if (parseDate(s.date) > now) return s;
+  }
+  return null;
 }
 
 // ── Render ──
 function render() {
   const now = new Date();
-  const sorted = [...RFP_DATA].sort((a, b) => {
-    const ap = parseDate(a.proposalDeadline) < now;
-    const bp = parseDate(b.proposalDeadline) < now;
-    if (ap !== bp) return ap ? 1 : -1;
-    return parseDate(a.proposalDeadline) - parseDate(b.proposalDeadline);
+  document.getElementById("clock").textContent = now.toLocaleDateString("en-US", {
+    weekday: "short", month: "short", day: "numeric", year: "numeric"
+  }) + "  " + now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+
+  const buckets = {};
+  PHASES.forEach(p => buckets[p.key] = []);
+  RFP_DATA.forEach(rfp => buckets[getPhaseKey(rfp)].push(rfp));
+
+  Object.values(buckets).forEach(arr => {
+    arr.sort((a, b) => {
+      const na = nextDeadline(a), nb = nextDeadline(b);
+      if (!na && !nb) return 0;
+      if (!na) return 1;
+      if (!nb) return -1;
+      return parseDate(na.date) - parseDate(nb.date);
+    });
   });
 
-  const clockStr = now.toLocaleDateString("en-US", {
-    weekday: "short", month: "short", day: "numeric", year: "numeric"
-  }) + " " + now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  let html = "";
 
-  let html = `
-    <div class="header">
-      <h1>CLERC RFP Tracker</h1>
-      <span class="clock">${clockStr}</span>
-    </div>
-    <p class="subtitle">${sorted.length} open RFP${sorted.length !== 1 ? "s" : ""} &middot; Live countdowns update every minute</p>
-    <div class="legend">
-      <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span> Due &lt; 48h</div>
-      <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span> Due &lt; 5 days</div>
-      <div class="legend-item"><span class="legend-dot" style="background:#6b7280"></span> Upcoming</div>
-      <div class="legend-item"><span class="legend-dot" style="background:#666"></span> Past (struck)</div>
-    </div>
-    <div class="cards">
-  `;
+  PHASES.forEach((phase, pi) => {
+    const cards = buckets[phase.key];
 
-  sorted.forEach((rfp, i) => {
-    const c = COLORS[i % COLORS.length];
-    const phase = getPhase(rfp);
-    const pc = PHASE_COLORS[phase];
+    html += `<div class="column phase-${phase.key}">`;
+    html += `<div class="col-header">
+      <div class="col-phase">${phase.label}<span class="col-count">${cards.length}</span></div>
+      <div class="col-sub">${phase.sub}</div>
+    </div>`;
+    html += `<div class="col-body">`;
 
-    // Countdown badges
-    let badges = "";
-    const qc = getStatus(rfp.questionsDeadline) !== "past" ? countdownText(rfp.questionsDeadline) : null;
-    const bc = getStatus(rfp.proposalDeadline) !== "past" ? countdownText(rfp.proposalDeadline) : null;
-    if (qc) badges += `<span class="countdown-badge cb-${qc.urgency}"><span class="cb-label">Questions</span> ${qc.text}</span>`;
-    if (bc) badges += `<span class="countdown-badge cb-${bc.urgency}"><span class="cb-label">Bids Due</span> ${bc.text}</span>`;
-
-    // Milestones
-    function milestone(label, dateStr, location) {
-      const st = getStatus(dateStr);
-      const pastClass = st === "past" ? " past" : "";
-      const dotClass = "dot-" + st;
-      let loc = "";
-      if (location && st !== "past") {
-        loc = `<div class="m-location">${location}</div>`;
-      }
-      return `
-        <div class="milestone${pastClass}">
-          <span class="status-dot ${dotClass}"></span>
-          <div>
-            <span class="m-label">${label}:</span>
-            <span class="m-date">${fmtFull(dateStr)}</span>
-            ${loc}
-          </div>
-        </div>`;
+    if (cards.length === 0) {
+      html += `<div class="col-empty">No projects</div>`;
     }
 
-    html += `
-      <div class="card" style="animation-delay:${i * 0.08}s">
-        <div class="card-header" style="background:${c.bg}">
-          <div class="card-header-left">
-            <span class="rfp-num" style="color:${c.accent}">${rfp.number}</span>
-            <span class="rfp-name">${rfp.name}</span>
-          </div>
-          <span class="phase-tag" style="background:${pc.bg};color:${pc.text}">${phase}</span>
+    cards.forEach((rfp, ci) => {
+      const accent = phase.accent;
+      const nd = nextDeadline(rfp);
+
+      let badge = "";
+      if (nd) {
+        const cd = countdownText(nd.date);
+        if (cd) badge = `<div class="urgent-badge ub-${cd.urgency}"><span class="ub-label">${nd.label}</span> ${cd.text}</div>`;
+      }
+
+      const steps = [
+        { label: "Site Walk", date: rfp.siteWalk, loc: rfp.siteWalkLocation },
+        { label: "Questions", date: rfp.questionsDeadline },
+        { label: "Bids Due",  date: rfp.proposalDeadline },
+        { label: "Award",     date: rfp.anticipatedAward },
+        { label: "Completion", date: rfp.anticipatedCompletion },
+      ];
+
+      let msHtml = "";
+      steps.forEach(s => {
+        const st = getStatus(s.date);
+        const pastCls = st === "past" ? " past" : "";
+        msHtml += `<div class="ms-row${pastCls}">
+          <span class="ms-dot ms-dot-${st}"></span>
+          <span class="ms-label">${s.label}</span>
+          <span class="ms-val">${fmtShort(s.date)}</span>
+        </div>`;
+        if (s.loc && st !== "past") {
+          msHtml += `<div class="ms-loc">${s.loc}</div>`;
+        }
+      });
+
+      html += `<div class="card" data-accent="${accent}" style="animation-delay:${(pi * 0.1) + (ci * 0.06)}s">
+        <div class="card-top">
+          <span class="card-num card-num-${accent}">${rfp.number}</span>
+          <span class="card-grant">${rfp.grant}</span>
         </div>
-        <div class="card-body">
-          <div class="countdowns">${badges}</div>
-          <div class="milestones">
-            ${milestone("Site Walk", rfp.siteWalk, rfp.siteWalkLocation)}
-            ${milestone("Questions Due", rfp.questionsDeadline)}
-            ${milestone("Bids Due", rfp.proposalDeadline)}
-            ${milestone("Award", rfp.anticipatedAward)}
-            ${milestone("Completion", rfp.anticipatedCompletion)}
-            <div class="grant-label">${rfp.grant}</div>
-          </div>
-        </div>
+        <div class="card-name">${rfp.name}</div>
+        ${badge}
+        <div class="milestones">${msHtml}</div>
       </div>`;
+    });
+
+    html += `</div></div>`;
   });
 
-  html += "</div>";
-  document.getElementById("app").innerHTML = html;
+  document.getElementById("pipeline").innerHTML = html;
 }
 
-// Initial render + refresh every 60 seconds
 render();
 setInterval(render, 60000);
 </script>
